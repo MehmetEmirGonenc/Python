@@ -9,7 +9,7 @@ def main():
         print("#############################  MAIN MENU  ##################################")
         print("#    1-) LIST of Movies/Series")
         print("#    2-) Browse on LIST")
-        print("#    3-) LIST of Actors")
+        print("#    3-) LIST / Browse of Actors / Actress")
         print("#    4-) LIST of Directors")
         print("#    5-) LIST of Others")
         print("#    0-) EXİT")
@@ -18,6 +18,9 @@ def main():
             List_Mov(cur)
         elif choice == "2":
             Browse(cur)
+        elif choice == "3":
+            List_crew()
+
             
 
 
@@ -31,12 +34,56 @@ def List_Mov(cur):
 def Browse(cur):
     List(cur,"SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY ratings.rating * ratings.votes DESC) as id, titles.title_id,primary_title,premiered,ended,type,runtime_minutes,genres,ratings.rating,ratings.votes FROM titles INNER JOIN ratings ON titles.title_id = ratings.title_id WHERE primary_title LIKE ?) WHERE id BETWEEN ? AND ?;", 'Browse')
 
+#Listing actor/ actress
+#def List_Act():
+        
+
 #Call crew details
 def Call_Crew(cur, title_id):
     #Get crew information with sql query
     detail_res = cur.execute("SELECT category, people.name FROM crew INNER JOIN people ON crew.person_id = people.person_id WHERE crew.title_id = ? ORDER BY CASE WHEN category = 'director' THEN 1 WHEN category = 'writer' THEN 2 WHEN category = 'actor' THEN 3 ELSE 4 END ASC;", title_id)
     return detail_res.fetchall()
 
+
+#List Crew
+def List_crew(cur, category):
+    page = 0
+    #Main Loop
+    while(True):
+        page += 1
+        #Browse extension
+        print("+-----------------------------------------------------------+")
+        print("|            Browsing or Listing actors / actress           |")
+        print("+-----------------------------------------------------------+")
+        print("(If you want to browse enter a name or just press enter!)")
+        name = input(">>>")
+        if name == any:
+            
+        args = [category, (((page - 1)*50) + 1), (page*50)]
+        val = cur.execute("SELECT ROW_NUMBER() OVER(ORDER BY name)id,name FROM people WHERE person_id IN (SELECT person_id FROM crew WHERE category IN (?)) WHERE BETWEEN ? AND ?", args)
+        values = val.fetchall()
+        for row in values:
+            print(f"ID : {row[0]}| Name : {row[1]}")
+        print(f"\n                                   <{page}>")   
+        while (True):
+            print("\nN - > Next Page")
+            print("P - > Previous Page")
+            print("<movie id> - > Detailed information about actor/actress")
+            if mode == 'Browse':
+                print("B - > Browse something else")
+            print("E - > Exit")
+            choice = input(">>>")
+            if choice.upper() == "N" :
+                brow_key = True
+                break
+            elif choice.upper() == "E":
+                return
+            elif choice.upper() == "P":
+                if page <= 1:
+                    page -= 1
+                else:
+                    page -= 2
+                break 
 
 #Listings
 def List(cur, query, mode = ' '):
