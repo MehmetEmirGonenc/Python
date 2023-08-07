@@ -19,7 +19,7 @@ def main():
         elif choice == "2":
             Browse(cur)
         elif choice == "3":
-            List_crew()
+            List_crew(cur,('actor', 'actress'))
 
             
 
@@ -57,13 +57,16 @@ def List_crew(cur, category):
         print("+-----------------------------------------------------------+")
         print("(If you want to browse enter a name or just press enter!)")
         name = input(">>>")
-        if name == any:
-            
-        args = [category, (((page - 1)*50) + 1), (page*50)]
-        val = cur.execute("SELECT ROW_NUMBER() OVER(ORDER BY name)id,name FROM people WHERE person_id IN (SELECT person_id FROM crew WHERE category IN (?)) WHERE BETWEEN ? AND ?", args)
-        values = val.fetchall()
+        if name == None:
+            args = [category, (((page - 1)*50) + 1), (page*50)]
+            val = cur.execute("SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY name)id, name, born, died FROM people WHERE person_id IN (SELECT person_id FROM crew WHERE category IN (?))) WHERE id BETWEEN ? AND ?;", args)
+            values = val.fetchall()
+        else :
+            args = [category, (name + '%'), (((page - 1)*50) + 1), (page*50)]
+            val = cur.execute("SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY name DESC), * FROM people WHERE person_id IN (SELECT person_id FROM crew WHERE category IN (?)) AND name LIKE ?) AND id BETWEEN ? AND ?;",args)
+            values = val.fetchall()
         for row in values:
-            print(f"ID : {row[0]}| Name : {row[1]}")
+            print(f"ID : {row[0]}| Name : {row[1]}  | {row[2]}/{row[3]}")
         print(f"\n                                   <{page}>")   
         while (True):
             print("\nN - > Next Page")
@@ -84,6 +87,7 @@ def List_crew(cur, category):
                 else:
                     page -= 2
                 break 
+
 
 #Listings
 def List(cur, query, mode = ' '):
